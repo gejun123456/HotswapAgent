@@ -11,6 +11,8 @@ import org.hotswap.agent.util.ReflectionHelper;
 import org.springframework.core.io.Resource;
 import sun.security.util.Resources_es;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -94,29 +96,10 @@ public class SpringMybatisConfigurationProxy {
 
     private Object sqlSessionFactoryBean;
     public Configuration configuration;
-    private Configuration proxyInstance;
 
     public Configuration proxy(Configuration origConfiguration) {
-        this.configuration = origConfiguration;
-        if (proxyInstance == null) {
-            ProxyFactory factory = new ProxyFactory();
-            factory.setSuperclass(Configuration.class);
-
-            MethodHandler handler = new MethodHandler() {
-                @Override
-                public Object invoke(Object self, Method overridden, Method forwarder,
-                                     Object[] args) throws Throwable {
-                    return overridden.invoke(configuration, args);
-                }
-            };
-
-            try {
-                proxyInstance = (Configuration) factory.create(new Class[0], null, handler);
-            } catch (Exception e) {
-                throw new Error("Unable instantiate Configuration proxy", e);
-            }
-        }
-        return proxyInstance;
+        configuration = origConfiguration;
+        return configuration;
     }
 
     public static boolean isMybatisEntity(Class<?> clazz) {
@@ -128,6 +111,4 @@ public class SpringMybatisConfigurationProxy {
 
         return false;
     }
-
-
 }
