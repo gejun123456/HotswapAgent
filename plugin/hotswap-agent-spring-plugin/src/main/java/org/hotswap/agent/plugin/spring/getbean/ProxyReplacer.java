@@ -106,6 +106,10 @@ public class ProxyReplacer {
             if(beanClassName.contains("DynamicDataSourceAutoConfiguration")||beanClassName.contains("DynamicDataSourceCreatorAutoConfiguration") ){
                 return bean;
             }
+
+            if(beanClassName.contains("DruidConfig")||beanClassName.contains("DruidProperties")){
+                return bean;
+            }
             LOGGER.debug("cglib proxy for spring bean class:"+bean.getClass().getName());
 
             return EnhancerProxyCreater.createProxy(beanFactry, bean, paramClasses, paramValues);
