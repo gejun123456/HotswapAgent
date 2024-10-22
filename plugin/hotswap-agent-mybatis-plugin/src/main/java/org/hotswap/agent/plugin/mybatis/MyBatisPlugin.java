@@ -80,12 +80,14 @@ public class MyBatisPlugin {
             LOGGER.debug("MyBatisPlugin - configuration file registered : {}", configFile);
             configurationMap.put(configFile, configObject);
         }
-        try {
-            File file = new File(configFile);
-            String absolutePath = file.getParentFile().getAbsolutePath();
-            configurationFolder.put(absolutePath, configObject);
-        }catch (Exception eee){
-            LOGGER.info("Register mybatis configuration file folder error config file is:"+configFile,eee);
+        if(configFile!=null) {
+            try {
+                File file = new File(configFile);
+                String absolutePath = file.getParentFile().getAbsolutePath();
+                configurationFolder.put(absolutePath, configObject);
+            } catch (Exception eee) {
+                LOGGER.info("Register mybatis configuration file folder error config file is:" + configFile, eee);
+            }
         }
     }
 

@@ -6,6 +6,7 @@ import org.hotswap.agent.javassist.util.proxy.MethodHandler;
 import org.hotswap.agent.javassist.util.proxy.ProxyFactory;
 import org.hotswap.agent.logging.AgentLogger;
 import org.hotswap.agent.plugin.mybatis.MyBatisPlugin;
+import org.hotswap.agent.plugin.mybatis.MyBatisRefreshCommands;
 import org.hotswap.agent.plugin.mybatis.transformers.ConfigurationCaller;
 import org.hotswap.agent.util.ReflectionHelper;
 import org.springframework.core.io.Resource;
@@ -24,6 +25,9 @@ public class SpringMybatisConfigurationProxy {
     private static AgentLogger LOGGER = AgentLogger.getLogger(SpringMybatisConfigurationProxy.class);
 
     protected static Map<Object, SpringMybatisConfigurationProxy> proxiedConfigurations = new HashMap<>();
+
+
+    private Configuration proxyInstance;
 
     public SpringMybatisConfigurationProxy(Object sqlSessionFactoryBean) {
         this.sqlSessionFactoryBean = sqlSessionFactoryBean;
@@ -98,8 +102,30 @@ public class SpringMybatisConfigurationProxy {
     public Configuration configuration;
 
     public Configuration proxy(Configuration origConfiguration) {
-        configuration = origConfiguration;
-        return configuration;
+
+        this.configuration = origConfiguration;
+        if(MyBatisRefreshCommands.isMybatisPlus){
+            return this.configuration;
+        }
+        if (proxyInstance == null) {
+            ProxyFactory factory = new ProxyFactory();
+            factory.setSuperclass(origConfiguration.getClass());
+
+            MethodHandler handler = new MethodHandler() {
+                @Override
+                public Object invoke(Object self, Method overridden, Method forwarder,
+                                     Object[] args) throws Throwable {
+                    return overridden.invoke(configuration, args);
+                }
+            };
+
+            try {
+                proxyInstance = (Configuration) factory.create(new Class[0], null, handler);
+            } catch (Exception e) {
+                throw new Error("Unable instantiate Configuration proxy", e);
+            }
+        }
+        return proxyInstance;
     }
 
     public static boolean isMybatisEntity(Class<?> clazz) {

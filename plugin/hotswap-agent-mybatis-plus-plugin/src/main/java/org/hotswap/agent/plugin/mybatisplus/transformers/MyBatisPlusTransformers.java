@@ -85,6 +85,9 @@ public class MyBatisPlusTransformers {
         if (isMybatisXMLConfigBuilderPatched) {
             return;
         }
+        if(!MyBatisRefreshCommands.isMybatisPlus){
+            return;
+        }
         StringBuilder src = new StringBuilder("{");
         src.append(PluginManagerInvoker.buildInitializePlugin(MyBatisPlusPlugin.class));
         src.append(PluginManagerInvoker.buildCallPluginMethod(MyBatisPlusPlugin.class, "registerConfigurationFile",
@@ -136,7 +139,9 @@ public class MyBatisPlusTransformers {
 
     @OnClassLoadEvent(classNameRegexp = "org.apache.ibatis.session.SqlSessionFactoryBuilder")
     public static void patchSqlSessionFactoryBuilder(CtClass ctClass, ClassPool classPool) throws NotFoundException, CannotCompileException {
-        MyBatisRefreshCommands.isMybatisPlus = true;
+        if(!MyBatisRefreshCommands.isMybatisPlus){
+            return;
+        }
         addBuilderField(ctClass, classPool);
         CtMethod buildMethod = ctClass.getDeclaredMethod("build",
                 new CtClass[] {classPool.get("org.apache.ibatis.session.Configuration")});
